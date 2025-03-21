@@ -1,10 +1,44 @@
 class UserController {
-  constructor(formId) {
+  constructor(formId, tableId) {
     this.formEl = document.getElementById(formId);
+    this.tableEl = document.getElementById(tableId);
+
+    this.onSubmit();
+  }
+
+  onSubmit() {
+    this.formEl.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      let values = this.getValues();
+
+      values.photo = '';
+
+      this.getPhoto();
+
+      this.addLine(values);
+    });
+  }
+
+  getPhoto() {
+    let fileReader = new FileReader();
+
+    let elements = [...this.formEl.element].filter((item) => {
+      if (item.name === 'photo') {
+        return item;
+      }
+    });
+
+    console.log(elements[0].files[0]);
+    fileReader.onload = () => {};
+
+    fileReader.readAsDataURL();
   }
 
   getValues() {
-    fields.forEach((field) => {
+    let user = {};
+
+    [...this.formEl.element].forEach((field) => {
       if (field.name == 'gender') {
         if (field.checked) {
           user[field.name] = field.value;
@@ -14,7 +48,7 @@ class UserController {
       }
     });
 
-    var objectUser = new User(
+    return new User(
       user.name,
       user.gender,
       user.birth,
@@ -24,5 +58,24 @@ class UserController {
       user.photo,
       user.admin,
     );
+  }
+
+  addLine(dataUSer) {
+    this.tableEl.innerHTML = `
+   <tr>
+                      <td>
+                        <img src="dist/img/user1-128x128.jpg" alt="User Image" class="img-circle img-sm">
+                      </td>
+                      <td>${dataUSer.name}</td>
+                      <td>${dataUSer.email}</td>
+                      <td>${dataUSer.admin}</td>
+                      <td>${dataUSer.birth}</td>
+                      <td>
+                        <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
+                        <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                      </td>
+                    </tr>
+
+  `;
   }
 }
