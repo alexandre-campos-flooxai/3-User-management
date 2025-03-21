@@ -10,38 +10,66 @@ class UserController {
     this.formEl.addEventListener('submit', (event) => {
       event.preventDefault();
 
+      let btn = this.formEl.querySelector('[type=submit]');
+
+      btn.disabled = true;
+
       let values = this.getValues();
 
-      values.photo = '';
+      this.getPhoto().then(
+        (content) => {
+          values.photo = content;
 
-      this.getPhoto();
+          this.addLine(values);
 
-      this.addLine(values);
+          this.formEl.reset();
+
+          btn.disabled = false;
+        },
+        (e) => {
+          console.log(e);
+        },
+      );
     });
   }
 
   getPhoto() {
-    let fileReader = new FileReader();
+    return new Promise((resolve, reject) => {
+      let fileReader = new FileReader();
 
-    let elements = [...this.formEl.element].filter((item) => {
-      if (item.name === 'photo') {
-        return item;
+      let elements = [...this.formEl.elements].filter((item) => {
+        if (item.name === 'photo') {
+          return item;
+        }
+      });
+
+      let file = elements[0].files[0];
+
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+
+      fileReader.onerror = () => {
+        reject(e);
+      };
+
+      if (file) {
+        fileReader.readAsDataURL(file);
+      } else {
+        resolve('../dist/img/boxed-bg.jpg');
       }
     });
-
-    console.log(elements[0].files[0]);
-    fileReader.onload = () => {};
-
-    fileReader.readAsDataURL();
   }
 
   getValues() {
     let user = {};
 
-    [...this.formEl.element].forEach((field) => {
+    [...this.formEl.elements].forEach((field) => {
       if (field.name == 'gender') {
         if (field.checked) {
           user[field.name] = field.value;
+        } else if (field.name == 'admin') {
+          user[field.name] = field.checked;
         }
       } else {
         user[field.name] = field.value;
@@ -61,21 +89,21 @@ class UserController {
   }
 
   addLine(dataUSer) {
-    this.tableEl.innerHTML = `
-   <tr>
+    let tr = document.createElement('tr');
+
+    tr.innerHTML = `
                       <td>
                         <img src="dist/img/user1-128x128.jpg" alt="User Image" class="img-circle img-sm">
                       </td>
                       <td>${dataUSer.name}</td>
                       <td>${dataUSer.email}</td>
-                      <td>${dataUSer.admin}</td>
-                      <td>${dataUSer.birth}</td>
+                      <td>${dataUSer.admin ? 'Sim' : 'Não'}</td>
+                      <td>${dataUSer.register}</td>
                       <td>
                         <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
                         <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
                       </td>
-                    </tr>
-
   `;
+    this.tableEl.appendChild(tr);
   }
 }
