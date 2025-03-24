@@ -6,6 +6,7 @@ class UserController {
 
     this.onSubmit();
     this.onEdit();
+    this.selectAll();
   }
 
   onEdit() {
@@ -23,8 +24,6 @@ class UserController {
       btn.disabled = true;
 
       let values = this.getValues(this.formUpdateEl);
-
-      console.log(values);
 
       let index = this.formUpdateEl.dataset.trIndex;
 
@@ -71,7 +70,7 @@ class UserController {
           this.showPanelCreate();
         },
         (e) => {
-          console.log(e);
+          // console.log(e);
         },
       );
     });
@@ -93,6 +92,8 @@ class UserController {
         (content) => {
           values.photo = content;
 
+          this.insert(values);
+
           this.addLine(values);
 
           this.formEl.reset();
@@ -100,7 +101,7 @@ class UserController {
           btn.disabled = false;
         },
         (e) => {
-          console.log(e);
+          // console.log(e);
         },
       );
     });
@@ -174,6 +175,36 @@ class UserController {
     );
   }
 
+  getUsersStorage() {
+    let users = [];
+
+    if (localStorage.getItem('users')) {
+      users = JSON.parse(localStorage.getItem('users'));
+    }
+
+    return users;
+  }
+
+  selectAll() {
+    let users = this.getUsersStorage();
+
+    users.forEach((dataUser) => {
+      let user = new User();
+
+      user.loadFromJSON(dataUser);
+
+      this.addLine(user);
+    });
+  }
+
+  insert(data) {
+    let users = this.getUsersStorage();
+
+    users.push(data);
+    // sessionStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('users', JSON.stringify(users));
+  }
+
   addLine(dataUSer) {
     let tr = document.createElement('tr');
 
@@ -191,7 +222,7 @@ class UserController {
                       <td>${Utils.dateFormat(dataUSer.register)}</td>
                       <td>
                         <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                        <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                        <button type="button" class="btn btn-danger btn-xs btn-delete btn-flat">Excluir</button>
                       </td>
   `;
 
@@ -203,6 +234,14 @@ class UserController {
   }
 
   addEventsTr(tr) {
+    tr.querySelector('.btn-delete').addEventListener('click', (e) => {
+      if (confirm('Deseja realmente excluir?')) {
+        tr.remove();
+
+        this.updateCount();
+      }
+    });
+
     tr.querySelector('.btn-edit').addEventListener('click', (e) => {
       let json = JSON.parse(tr.dataset.user);
 
@@ -230,7 +269,7 @@ class UserController {
               field.checked = true;
               break;
 
-            case 'checkBox':
+            case 'checkbox':
               field.checked = json[name];
               break;
 
